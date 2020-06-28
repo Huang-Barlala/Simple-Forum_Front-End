@@ -1,18 +1,56 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <div class="d-flex flex-wrap ">
+      <v-hover
+        v-for="item of sectionsInfo"
+        :key="item.id"
+        class="px-2 py-2"
+        style="width: 50%"
+        v-slot:default="{ hover }"
+      >
+        <div class="pa-1">
+          <v-card
+            :elevation="hover ? 12 : 2"
+            class="text-center py-3"
+            v-ripple
+            @click="goToSection(item.id)"
+            >{{ item.name }}</v-card
+          >
+        </div>
+      </v-hover>
+    </div>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
 
 export default {
-  name: 'Home',
-  components: {
-    HelloWorld
+  name: "Home",
+  components: {},
+  data: () => {
+    return {
+      sectionsInfo: []
+    };
+  },
+  methods: {
+    getInfo() {
+      let data = this.$qs.stringify({ username: "haha", password: "123" });
+      this.$axios.post("/api/login/username", data).then(function(response) {
+        console.log(response.data);
+      });
+    },
+    goToSection(id) {
+      this.$router.push("/section/" + id);
+    }
+  },
+  mounted() {
+    let $this = this;
+    $this.$axios.get("/api/getSections").then(function(response) {
+      for (let section of response.data.data) {
+        $this.sectionsInfo.push(section);
+      }
+    });
   }
-}
+};
 </script>
