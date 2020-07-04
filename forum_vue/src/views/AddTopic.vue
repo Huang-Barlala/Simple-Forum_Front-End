@@ -12,16 +12,22 @@
       >
       </v-text-field>
     </v-form>
-    <my-tinymce style="height: 800px" v-model="content"></my-tinymce>
-    <v-btn @click="addTopic">发布</v-btn>
+    <my-quill-editor
+      v-model="content"
+      :costumeStyle="{
+        height: 600 + 'px',
+        marginBottom: 70 + 'px'
+      }"
+    ></my-quill-editor>
+    <v-btn @click="addTopic" style="margin-top: 80px">发布</v-btn>
   </div>
 </template>
 
 <script>
-import MyTinymce from "../components/MyTinymce";
+import MyQuillEditor from "../components/MyQuillEditor";
 export default {
   name: "AddTopic",
-  components: { MyTinymce },
+  components: { MyQuillEditor },
   data: () => {
     return {
       title: "",
@@ -30,7 +36,6 @@ export default {
   },
   methods: {
     addTopic() {
-      console.log("content" + this.content);
       if (this.$refs.title.validate()) {
         if (this.content === "") {
           this.$store.commit("showSnackbar", {
@@ -60,12 +65,18 @@ export default {
                   text: res.data.msg
                 });
               }
-            })
-            .catch(res => {
-              console.log(res);
             });
         }
       }
+    }
+  },
+  mounted() {
+    if (this.$route.params.sectionId == null) {
+      this.$store.commit("showSnackbar", {
+        color: "orange",
+        text: "错误来源" + " 自动转跳至首页"
+      });
+      this.$router.push("/");
     }
   }
 };

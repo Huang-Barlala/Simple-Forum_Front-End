@@ -1,18 +1,13 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Home from "../views/Home.vue";
-import NotFound from "../views/NotFound";
-import Section from "../views/Section";
-import Topic from "../views/Topic";
-import AddTopic from "../views/AddTopic";
 
-Vue.use(VueRouter);
+if (!window.VueRouter) Vue.use(VueRouter);
 
 const routes = [
   {
     path: "/",
     name: "Home",
-    component: Home
+    component: () => import("../views/Home")
   },
   {
     path: "/about",
@@ -25,20 +20,25 @@ const routes = [
   },
   {
     path: "*",
-    component: NotFound
+    name: "NotFound",
+    component: () => import("../views/NotFound")
   },
   {
     path: "/section/:sectionId",
-    component: Section
+    component: () => import("../views/Section")
   },
   {
     path: "/topic/:topicId",
-    component: Topic
+    component: () => import("../views/Topic")
   },
   {
     path: "/addTopic",
     name: "addTopic",
-    component: AddTopic
+    component: () => import("../views/AddTopic")
+  },
+  {
+    path: "/user",
+    component: () => import("../views/User")
   }
 ];
 

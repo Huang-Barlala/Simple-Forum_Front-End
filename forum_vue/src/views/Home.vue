@@ -34,12 +34,6 @@ export default {
     };
   },
   methods: {
-    getInfo() {
-      let data = this.$qs.stringify({ username: "haha", password: "123" });
-      this.$axios.post("/api/login/username", data).then(function(response) {
-        console.log(response.data);
-      });
-    },
     goToSection(id) {
       this.$router.push("/section/" + id);
     }

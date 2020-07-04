@@ -14,7 +14,18 @@
         <div class="d-flex flex-nowrap justify-space-between">
           <div>
             <v-card-title v-text="item.title"></v-card-title>
-            <v-card-subtitle v-text="item.author"></v-card-subtitle>
+            <v-card-subtitle
+              ><span v-text="item.author"></span
+              ><span
+                class="font-weight-bold"
+                v-text="
+                  $store.state.isLogin === true &&
+                  item.userid === $store.state.userInfo.id
+                    ? '(我的帖子)'
+                    : ''
+                "
+              ></span
+            ></v-card-subtitle>
           </div>
           <div
             class="d-flex flex-column justify-space-around my-2 mx-3"
@@ -69,9 +80,11 @@ export default {
             this.page
         )
         .then(res => {
-          this.topicList = [];
-          for (let it = 0; it < res.data.data.length; it++) {
-            this.topicList.push(res.data.data[it]);
+          if (res.data.code === 200) {
+            this.topicList = [];
+            for (let it = 0; it < res.data.data.length; it++) {
+              this.topicList.push(res.data.data[it]);
+            }
           }
         });
     },

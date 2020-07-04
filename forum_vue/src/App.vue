@@ -1,11 +1,52 @@
 <template>
   <v-app id="simple-forum">
     <v-app-bar app color="#ffffff" dark>
-      <v-toolbar-title class="black--text">Simple-Forum</v-toolbar-title>
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attr }">
+          <v-toolbar-title
+            class="black--text"
+            @click="routeToHome"
+            v-on="on"
+            v-bind="attr"
+            >Simple-Forum</v-toolbar-title
+          >
+        </template>
+        <span>首页</span>
+      </v-tooltip>
+
       <v-spacer></v-spacer>
-      <div v-if="$store.state.isLogin === true" class="d-flex">
-        <v-btn @click="logout" class="mr-2">退出</v-btn>
-        <div style="color: black">{{ userInfo.username }}</div>
+      <div v-if="$store.state.isLogin === true" class="d-flex align-center">
+        <v-tooltip bottom internal-activator>
+          <template v-slot:activator="{ on, attr }">
+            <v-avatar v-on="on" v-bind="attr" @click="routeToUser">
+              <v-img :src="$store.state.userInfo.avatar"></v-img>
+            </v-avatar>
+          </template>
+          <span>我的信息</span>
+        </v-tooltip>
+        <v-tooltip bottom internal-activator>
+          <template v-slot:activator="{ on, attr }">
+            <span
+              v-on="on"
+              v-bind="attr"
+              class="mx-3"
+              style="color: black;font-size: 20px"
+              v-text="$store.state.userInfo.username"
+            ></span>
+          </template>
+          <span v-text="userGroup[$store.state.userInfo.permission]"></span>
+        </v-tooltip>
+
+        <v-tooltip bottom>
+          <template v-slot:activator="{ on, attr }">
+            <v-btn icon elevation="5" @click="logout" v-on="on" v-bind="attr"
+              ><v-icon color="black" style="height: 48px;width: 48px"
+                >fas fa-sign-out-alt</v-icon
+              ></v-btn
+            >
+          </template>
+          <span>退出</span>
+        </v-tooltip>
       </div>
       <div v-else>
         <v-btn @click="dialog = true">登录/注册</v-btn>
@@ -80,13 +121,18 @@
                 label="用户名"
                 hint="请输入用户名"
                 :rules="[() => !!reg_username || '必须输入用户名']"
+                :error-messages="usernameErrorMessage"
+                :success-messages="usernameSuccessMessage"
+                @input="usernameCheck"
               ></v-text-field>
               <v-text-field
                 outlined
                 v-model="reg_email"
                 label="邮箱(可空)"
                 hint="请输入邮箱"
-                :rules="[rules.regEmail()]"
+                :error-messages="emailErrorMessage"
+                :success-messages="emailSuccessMessage"
+                @input="emailCheck"
               >
               </v-text-field>
               <v-text-field
@@ -112,7 +158,9 @@
         <v-snackbar
           v-model="$store.state.snackbar"
           top="top"
+          multi-line
           :color="$store.state.snackbarColor"
+          timeout="3000"
         >
           {{ $store.state.snackbarText }}
           <template v-slot:action="{ attrs }">
@@ -138,8 +186,6 @@
 export default {
   name: "App",
 
-  components: {},
-
   data: () => ({
     rules: {
       passwordMax: value => value.length <= 32 || "最长为32字符",
@@ -155,13 +201,6 @@ export default {
       email: value => {
         const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
         return pattern.test(value) || "邮箱格式不正确";
-      },
-      regEmail: value => {
-        if (value !== "") {
-          return true;
-        }
-        const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        return pattern.test(value) || "邮箱格式不正确";
       }
     },
     dialog: false,
@@ -172,8 +211,12 @@ export default {
     reg_username: "",
     reg_email: "",
     reg_password: "",
-    userInfo: Object,
-    tab: null
+    tab: null,
+    usernameSuccessMessage: "",
+    usernameErrorMessage: "",
+    emailSuccessMessage: "",
+    emailErrorMessage: "",
+    userGroup: { admin: "管理员", user: "用户" }
   }),
   methods: {
     errorMessage(res) {
@@ -198,7 +241,7 @@ export default {
               color: "success",
               text: "登录成功"
             });
-            this.getJwtCookie();
+            this.$store.commit("updateUserInfo");
             this.username = "";
             this.email = "";
             this.password = "";
@@ -235,16 +278,6 @@ export default {
           });
       }
     },
-    getJwtCookie() {
-      let cookies = document.cookie.split(";");
-      for (let cookie of cookies) {
-        if (cookie.trim().indexOf("jwt=") === 0) {
-          this.$store.commit("changeLoginTrue");
-          let jwt = cookie.substring(4);
-          this.userInfo = JSON.parse(atob(jwt.split(".")[1]));
-        }
-      }
-    },
     logout() {
       this.$axios.get("/api/logout").then(res => {
         if (res.data.code === 200) {
@@ -253,13 +286,73 @@ export default {
             color: "success",
             text: "退出成功"
           });
-          this.userInfo = Object;
         }
+      });
+    },
+    usernameCheck() {
+      this.$axios
+        .post(
+          "/api/usernameCheck",
+          this.$qs.stringify({ username: this.reg_username })
+        )
+        .then(res => {
+          if (res.data.data === false) {
+            this.usernameErrorMessage = "用户名重复";
+            this.usernameSuccessMessage = "";
+          } else {
+            this.usernameErrorMessage = "";
+            this.usernameSuccessMessage = "用户名可用";
+          }
+        });
+    },
+    emailCheck() {
+      if (this.reg_email === "") {
+        this.emailErrorMessage = "";
+        this.emailSuccessMessage = "";
+        return;
+      }
+      if (this.rules.email(this.reg_email) === true) {
+        this.$axios
+          .post(
+            "/api/emailCheck",
+            this.$qs.stringify({ email: this.reg_email })
+          )
+          .then(res => {
+            if (res.data.data === false) {
+              this.emailErrorMessage = "邮箱重复";
+              this.emailSuccessMessage = "";
+            } else {
+              this.emailErrorMessage = "";
+              this.emailSuccessMessage = "邮箱可用";
+            }
+          });
+      } else {
+        this.emailErrorMessage = "邮箱格式错误";
+        this.emailSuccessMessage = "";
+      }
+    },
+    routeToHome() {
+      this.$router.push("/").catch(error => {
+        error;
+      });
+    },
+    routeToUser() {
+      this.$router.push("/user").catch(error => {
+        error;
       });
     }
   },
   created() {
-    this.getJwtCookie();
+    this.$store.commit("updateUserInfo");
   }
 };
 </script>
+<style>
+img {
+  max-width: 100%;
+  max-height: 100%;
+}
+.ql-container {
+  overflow-y: auto;
+}
+</style>

@@ -8,7 +8,8 @@ export default new Vuex.Store({
     isLogin: false,
     snackbar: false,
     snackbarText: "",
-    snackbarColor: "success"
+    snackbarColor: "success",
+    userInfo: {}
   },
   mutations: {
     changeLoginTrue(state) {
@@ -30,6 +31,19 @@ export default new Vuex.Store({
       state.snackbarColor = payload.color;
       state.snackbarText = payload.text;
       state.snackbar = true;
+    },
+    changeUserInfo(state, payload) {
+      state.userInfo = payload;
+    },
+    updateUserInfo(state) {
+      let cookies = document.cookie.split(";");
+      for (let cookie of cookies) {
+        if (cookie.trim().indexOf("jwt=") === 0) {
+          state.isLogin = true;
+          let jwt = cookie.substring(4);
+          state.userInfo = JSON.parse(atob(jwt.split(".")[1]));
+        }
+      }
     }
   },
   actions: {},
