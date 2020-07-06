@@ -39,10 +39,9 @@ export default {
     }
   },
   mounted() {
-    let $this = this;
-    $this.$axios.get("/api/getSections").then(function(response) {
-      for (let section of response.data.data) {
-        $this.sectionsInfo.push(section);
+    this.$axios.get("/api/sections").then(res => {
+      for (let section of res.data.data) {
+        this.sectionsInfo.push(section);
       }
     });
   }

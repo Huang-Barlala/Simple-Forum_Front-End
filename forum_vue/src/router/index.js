@@ -39,6 +39,10 @@ const routes = [
   {
     path: "/user",
     component: () => import("../views/User")
+  },
+  {
+    path: "/admin",
+    component: () => import("../views/Admin")
   }
 ];
 

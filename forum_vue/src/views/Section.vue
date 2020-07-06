@@ -74,7 +74,7 @@ export default {
     fetchData() {
       this.$axios
         .get(
-          "/api/getTopicList/?sectionId=" +
+          "/api/topicList/?sectionId=" +
             this.$route.params.sectionId +
             "&page=" +
             this.page

@@ -45,7 +45,7 @@ export default {
         } else {
           this.$axios
             .post(
-              "/api/addTopic",
+              "/api/topic",
               this.$qs.stringify({
                 sectionId: this.$route.params.sectionId,
                 title: this.title,

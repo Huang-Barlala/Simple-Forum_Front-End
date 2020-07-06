@@ -1,5 +1,5 @@
 <template>
-  <v-app id="simple-forum">
+  <v-app id="simple-forum" v-scroll="scrollMethod">
     <v-app-bar app color="#ffffff" dark>
       <v-tooltip bottom>
         <template v-slot:activator="{ on, attr }">
@@ -8,8 +8,8 @@
             @click="routeToHome"
             v-on="on"
             v-bind="attr"
-            >Simple-Forum</v-toolbar-title
-          >
+            >Simple-Forum
+          </v-toolbar-title>
         </template>
         <span>首页</span>
       </v-tooltip>
@@ -39,11 +39,11 @@
 
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attr }">
-            <v-btn icon elevation="5" @click="logout" v-on="on" v-bind="attr"
-              ><v-icon color="black" style="height: 48px;width: 48px"
-                >fas fa-sign-out-alt</v-icon
-              ></v-btn
-            >
+            <v-btn icon elevation="5" @click="logout" v-on="on" v-bind="attr">
+              <v-icon color="black" style="height: 48px;width: 48px"
+                >fas fa-sign-out-alt
+              </v-icon>
+            </v-btn>
           </template>
           <span>退出</span>
         </v-tooltip>
@@ -174,6 +174,34 @@
             </v-btn>
           </template>
         </v-snackbar>
+
+        <v-tooltip top>
+          <template v-slot:activator="{ on, attr }">
+            <transition
+              id="trans"
+              enter-active-class="animate__animated animate__fadeIn"
+              leave-active-class="animate__animated animate__fadeOut"
+            >
+              <v-btn
+                v-show="scroll > 1000"
+                fab
+                fixed
+                right
+                bottom
+                class="ma-3"
+                v-bind="attr"
+                style="bottom: 100px"
+                color="green lighten-1"
+                v-on="on"
+                @click="$vuetify.goTo(0, { duration: 500 })"
+              >
+                <v-icon color="white">fas fa-chevron-up</v-icon>
+              </v-btn>
+            </transition>
+          </template>
+          <span>回到顶部</span>
+        </v-tooltip>
+
         <transition>
           <router-view></router-view>
         </transition>
@@ -183,6 +211,8 @@
 </template>
 
 <script>
+import "animate.css";
+
 export default {
   name: "App",
 
@@ -216,7 +246,8 @@ export default {
     usernameErrorMessage: "",
     emailSuccessMessage: "",
     emailErrorMessage: "",
-    userGroup: { admin: "管理员", user: "用户" }
+    userGroup: { admin: "管理员", user: "普通用户" },
+    scroll: 0
   }),
   methods: {
     errorMessage(res) {
@@ -291,10 +322,7 @@ export default {
     },
     usernameCheck() {
       this.$axios
-        .post(
-          "/api/usernameCheck",
-          this.$qs.stringify({ username: this.reg_username })
-        )
+        .get("/api/usernameCheck?username=" + this.reg_username)
         .then(res => {
           if (res.data.data === false) {
             this.usernameErrorMessage = "用户名重复";
@@ -312,20 +340,15 @@ export default {
         return;
       }
       if (this.rules.email(this.reg_email) === true) {
-        this.$axios
-          .post(
-            "/api/emailCheck",
-            this.$qs.stringify({ email: this.reg_email })
-          )
-          .then(res => {
-            if (res.data.data === false) {
-              this.emailErrorMessage = "邮箱重复";
-              this.emailSuccessMessage = "";
-            } else {
-              this.emailErrorMessage = "";
-              this.emailSuccessMessage = "邮箱可用";
-            }
-          });
+        this.$axios.get("/api/emailCheck?email=" + this.reg_email).then(res => {
+          if (res.data.data === false) {
+            this.emailErrorMessage = "邮箱重复";
+            this.emailSuccessMessage = "";
+          } else {
+            this.emailErrorMessage = "";
+            this.emailSuccessMessage = "邮箱可用";
+          }
+        });
       } else {
         this.emailErrorMessage = "邮箱格式错误";
         this.emailSuccessMessage = "";
@@ -340,10 +363,14 @@ export default {
       this.$router.push("/user").catch(error => {
         error;
       });
+    },
+    scrollMethod() {
+      this.scroll = window.scrollY;
     }
   },
   created() {
     this.$store.commit("updateUserInfo");
+    document.documentElement.style.setProperty("--animate-duration", ".5s");
   }
 };
 </script>
@@ -352,6 +379,7 @@ img {
   max-width: 100%;
   max-height: 100%;
 }
+
 .ql-container {
   overflow-y: auto;
 }

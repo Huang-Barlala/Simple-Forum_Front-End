@@ -104,6 +104,10 @@
             label="标题"
             counter
             v-model="title"
+            :rules="[
+              () => title.length <= 255 || '最长为255字符',
+              () => !!title || '标题不能为空'
+            ]"
           >
           </v-text-field>
         </div>
@@ -144,7 +148,7 @@ export default {
   methods: {
     fetchTopicData() {
       this.$axios
-        .get("/api/getTopic?topicId=" + this.$route.params.topicId)
+        .get("/api/topic?topicId=" + this.$route.params.topicId)
         .then(res => {
           if (res.data.code === 200) {
             this.topicInfo = res.data.data;
@@ -162,7 +166,7 @@ export default {
       }
       this.$axios
         .get(
-          "/api/getReply?topicId=" +
+          "/api/reply?topicId=" +
             this.$route.params.topicId +
             "&page=" +
             (Math.floor(replyNum / 20) + 1)
@@ -183,7 +187,7 @@ export default {
     submitContent() {
       this.$axios
         .post(
-          "/api/addReply",
+          "/api/reply",
           this.$qs.stringify({
             topicId: this.$route.params.topicId,
             content: this.content
@@ -203,8 +207,8 @@ export default {
     submitModifyContent() {
       if (this.selectedIndex === null) {
         this.$axios
-          .post(
-            "/api/modifyTopic",
+          .put(
+            "/api/topic",
             this.$qs.stringify({
               topicId: this.topicInfo.id,
               title: this.title,
@@ -217,8 +221,8 @@ export default {
           });
       } else {
         this.$axios
-          .post(
-            "/api/modifyReply",
+          .put(
+            "/api/reply",
             this.$qs.stringify({
               replyId: this.replyData[this.selectedIndex].id,
               content: this.modifyContent

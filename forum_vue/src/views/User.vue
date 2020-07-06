@@ -74,6 +74,16 @@
             注册日期：&nbsp;<span v-text="userDetail.createtime"></span>
           </div>
           <div>
+            用户组:&nbsp;<span
+              v-text="userGroup[$store.state.userInfo.permission]"
+            ></span>
+            <v-btn
+              v-if="$store.state.userInfo.permission === 'admin'"
+              to="/admin"
+              >进入管理界面
+            </v-btn>
+          </div>
+          <div>
             <v-btn v-if="!isChangePassword" @click="isChangePassword = true"
               >修改密码
             </v-btn>
@@ -245,7 +255,8 @@ export default {
       isPassChecked: false,
       overlay: false,
       isChangePassword: false,
-      selectedTopicId: null
+      selectedTopicId: null,
+      userGroup: { admin: "管理员", user: "普通用户" }
     };
   },
   methods: {
@@ -277,14 +288,14 @@ export default {
         formData.append("file", data);
         this.$axios({
           method: "POST",
-          url: "/api/uploadImage",
+          url: "/api/image",
           data: formData
         }).then(res => {
           if (res.data.code === 200) {
             this.newImgUrl = res.data.data;
             this.$axios
-              .post(
-                "/api/updateAvatar",
+              .put(
+                "/api/avatar",
                 this.$qs.stringify({ avatarUrl: this.newImgUrl })
               )
               .then(res2 => {
@@ -307,7 +318,7 @@ export default {
         return;
       }
       this.isLoading = true;
-      this.$axios.get("/api/getUserTopicInfo").then(res => {
+      this.$axios.get("/api/userTopicInfo").then(res => {
         this.isLoading = false;
         if (res.data.code === 200) {
           this.topicInfo = [];
@@ -327,10 +338,7 @@ export default {
         return;
       }
       this.$axios
-        .post(
-          "/api/usernameCheck",
-          this.$qs.stringify({ username: this.newUsername })
-        )
+        .get("/api/usernameCheck?username=" + this.newUsername)
         .then(res => {
           if (res.data.data === false) {
             this.usernameErrorMessage = "用户名重复";
@@ -353,24 +361,22 @@ export default {
         this.emailSuccessMessage = "";
         return;
       }
-      this.$axios
-        .post("/api/emailCheck", this.$qs.stringify({ email: this.newEmail }))
-        .then(res => {
-          if (res.data.data === false) {
-            this.emailErrorMessage = "邮箱重复";
-            this.emailSuccessMessage = "";
-          } else {
-            this.emailErrorMessage = "";
-            this.emailSuccessMessage = "邮箱可用";
-          }
-        });
+      this.$axios.get("/api/emailCheck?email=" + this.newEmail).then(res => {
+        if (res.data.data === false) {
+          this.emailErrorMessage = "邮箱重复";
+          this.emailSuccessMessage = "";
+        } else {
+          this.emailErrorMessage = "";
+          this.emailSuccessMessage = "邮箱可用";
+        }
+      });
     },
     changeUsername() {
       if (this.newUsername !== "" && this.usernameErrorMessage === "") {
         this.overlay = true;
         this.$axios
-          .post(
-            "/api/updateUsername",
+          .put(
+            "/api/username",
             this.$qs.stringify({ username: this.newUsername })
           )
           .then(res => {
@@ -392,10 +398,7 @@ export default {
       if (this.newEmail !== "" && this.emailErrorMessage === "") {
         this.overlay = true;
         this.$axios
-          .post(
-            "/api/updateEmail",
-            this.$qs.stringify({ email: this.newEmail })
-          )
+          .put("/api/email", this.$qs.stringify({ email: this.newEmail }))
           .then(res => {
             this.overlay = false;
             if (res.data.code === 200) {
@@ -414,10 +417,7 @@ export default {
       this.overlay = true;
       if (this.isPassChecked) {
         this.$axios
-          .post(
-            "/api/updatePassword",
-            this.$qs.stringify({ password: this.password })
-          )
+          .put("/api/password", this.$qs.stringify({ password: this.password }))
           .then(res => {
             this.overlay = false;
             if (res.data.code === 200) {
@@ -432,10 +432,7 @@ export default {
           });
       } else {
         this.$axios
-          .post(
-            "/api/checkPassword",
-            this.$qs.stringify({ password: this.password })
-          )
+          .get("/api/passwordConfirmation?password=" + this.password)
           .then(res => {
             this.overlay = false;
             this.password = "";
@@ -457,10 +454,7 @@ export default {
     deleteTopic() {
       this.dialog2 = false;
       this.$axios
-        .post(
-          "/api/deleteTopic",
-          this.$qs.stringify({ topicId: this.selectedTopicId })
-        )
+        .delete("/api/topic" + "?topicId=" + this.selectedTopicId)
         .then(res => {
           if (res.data.code === 200) {
             this.$store.commit("showSnackbar", {
@@ -485,7 +479,7 @@ export default {
     if (!this.$store.state.isLogin) {
       this.$router.back();
     } else {
-      this.$axios.get("/api/getUserDetail").then(res => {
+      this.$axios.get("/api/userDetail").then(res => {
         if (res.data.code === 200) {
           this.userDetail = res.data.data;
           this.userDetail.createtime = this.userDetail.createtime.substring(
