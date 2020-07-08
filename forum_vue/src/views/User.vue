@@ -2,17 +2,19 @@
   <div>
     <v-card class="pa-3">
       <div class="d-flex flex-row">
-        <div class="text-center">
+        <div class="text-center" style="width: 50%">
           <v-img
-            :src="userDetail.avatarurl"
-            height="300px"
-            width="300px"
+            :src="userDetail.avatarUrl"
+            height="auto"
+            width="auto"
+            max-width="300px"
+            class="mx-auto"
           ></v-img>
-          <v-btn @click="dialog = true">换头像</v-btn>
+          <v-btn @click="dialog = true" class="mt-3">换头像</v-btn>
         </div>
         <div
           class="d-flex flex-column justify-space-around align-center"
-          style="width: 100%"
+          style="width: 50%"
         >
           <div class="d-flex justify-center">
             <div class="d-flex align-center" v-if="!editUsername">
@@ -71,18 +73,16 @@
             </div>
           </div>
           <div>
-            注册日期：&nbsp;<span v-text="userDetail.createtime"></span>
+            注册日期：&nbsp;<span v-text="userDetail.createTime"></span>
           </div>
           <div>
             用户组:&nbsp;<span
               v-text="userGroup[$store.state.userInfo.permission]"
             ></span>
-            <v-btn
-              v-if="$store.state.userInfo.permission === 'admin'"
-              to="/admin"
-              >进入管理界面
-            </v-btn>
           </div>
+          <v-btn v-if="$store.state.userInfo.permission === 'admin'" to="/admin"
+            >进入管理界面
+          </v-btn>
           <div>
             <v-btn v-if="!isChangePassword" @click="isChangePassword = true"
               >修改密码
@@ -114,7 +114,7 @@
     <v-expansion-panels v-model="panel">
       <v-expansion-panel @change="fetchTopicInfo">
         <v-expansion-panel-header
-          >帖子数：{{ userDetail.topicnum }}
+          >帖子数：{{ userDetail.topicNum }}
           <v-progress-circular
             indeterminate
             v-if="isLoading"
@@ -126,7 +126,7 @@
               v-for="(item, i) in topicInfo"
               :key="i"
               ripple
-              @click="routeToTopic(item.id)"
+              @click="$router.push('/topic/' + id)"
             >
               <v-list-item-title v-text="item.title"></v-list-item-title>
               <v-list-item-action>
@@ -295,8 +295,11 @@ export default {
             this.newImgUrl = res.data.data;
             this.$axios
               .put(
-                "/api/avatar",
-                this.$qs.stringify({ avatarUrl: this.newImgUrl })
+                "/api/user",
+                this.$qs.stringify({
+                  id: this.userDetail.id,
+                  avatarUrl: this.newImgUrl
+                })
               )
               .then(res2 => {
                 if (res2.data.code === 200) {
@@ -305,7 +308,7 @@ export default {
                     text: "头像修改成功"
                   });
                   this.$store.commit("updateUserInfo");
-                  this.userDetail.avatarurl = this.newImgUrl;
+                  this.userDetail.avatarUrl = this.newImgUrl;
                   this.dialog = false;
                 }
               });
@@ -327,9 +330,6 @@ export default {
           }
         }
       });
-    },
-    routeToTopic(id) {
-      this.$router.push("/topic/" + id);
     },
     usernameCheck() {
       if (this.newUsername === "") {
@@ -376,8 +376,11 @@ export default {
         this.overlay = true;
         this.$axios
           .put(
-            "/api/username",
-            this.$qs.stringify({ username: this.newUsername })
+            "/api/user",
+            this.$qs.stringify({
+              id: this.userDetail.id,
+              username: this.newUsername
+            })
           )
           .then(res => {
             this.overlay = false;
@@ -398,7 +401,10 @@ export default {
       if (this.newEmail !== "" && this.emailErrorMessage === "") {
         this.overlay = true;
         this.$axios
-          .put("/api/email", this.$qs.stringify({ email: this.newEmail }))
+          .put(
+            "/api/user",
+            this.$qs.stringify({ id: this.userDetail.id, email: this.newEmail })
+          )
           .then(res => {
             this.overlay = false;
             if (res.data.code === 200) {
@@ -417,7 +423,13 @@ export default {
       this.overlay = true;
       if (this.isPassChecked) {
         this.$axios
-          .put("/api/password", this.$qs.stringify({ password: this.password }))
+          .put(
+            "/api/user",
+            this.$qs.stringify({
+              id: this.userDetail.id,
+              password: this.password
+            })
+          )
           .then(res => {
             this.overlay = false;
             if (res.data.code === 200) {
@@ -454,14 +466,14 @@ export default {
     deleteTopic() {
       this.dialog2 = false;
       this.$axios
-        .delete("/api/topic" + "?topicId=" + this.selectedTopicId)
+        .delete("/api/topic" + "?id=" + this.selectedTopicId)
         .then(res => {
           if (res.data.code === 200) {
             this.$store.commit("showSnackbar", {
               color: "success",
               text: "删除成功"
             });
-            this.userDetail.topicnum = this.userDetail.topicnum - 1;
+            this.userDetail.topicNum = this.userDetail.topicNum - 1;
             for (let i in this.topicInfo) {
               if (this.topicInfo[i].id === this.selectedTopicId) {
                 this.topicInfo.splice(i, 1);
@@ -479,14 +491,14 @@ export default {
     if (!this.$store.state.isLogin) {
       this.$router.back();
     } else {
-      this.$axios.get("/api/userDetail").then(res => {
+      this.$axios.get("/api/user").then(res => {
         if (res.data.code === 200) {
           this.userDetail = res.data.data;
-          this.userDetail.createtime = this.userDetail.createtime.substring(
+          this.userDetail.createTime = this.userDetail.createTime.substring(
             0,
             10
           );
-          this.option.img = this.userDetail.avatarurl;
+          this.option.img = this.userDetail.avatarUrl;
         }
       });
     }

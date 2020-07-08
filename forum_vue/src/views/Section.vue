@@ -20,7 +20,7 @@
                 class="font-weight-bold"
                 v-text="
                   $store.state.isLogin === true &&
-                  item.userid === $store.state.userInfo.id
+                  item.userId === $store.state.userInfo.id
                     ? '(我的帖子)'
                     : ''
                 "
@@ -31,9 +31,9 @@
             class="d-flex flex-column justify-space-around my-2 mx-3"
             style="font-size: 12px"
           >
-            <div>发表时间&nbsp;<span v-text="item.createtime"></span></div>
-            <div>修改时间&nbsp;<span v-text="item.modifytime"></span></div>
-            <div>回复时间&nbsp;<span v-text="item.replytime"></span></div>
+            <div>发表时间&nbsp;<span v-text="item.createTime"></span></div>
+            <div>修改时间&nbsp;<span v-text="item.modifyTime"></span></div>
+            <div>回复时间&nbsp;<span v-text="item.replyTime"></span></div>
           </div>
         </div>
       </v-card>

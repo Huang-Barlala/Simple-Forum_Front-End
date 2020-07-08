@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="text-center">
     <v-form ref="title">
       <v-text-field
         label="标题"
@@ -12,14 +12,16 @@
       >
       </v-text-field>
     </v-form>
-    <my-quill-editor
-      v-model="content"
-      :costumeStyle="{
-        height: 600 + 'px',
-        marginBottom: 70 + 'px'
-      }"
-    ></my-quill-editor>
-    <v-btn @click="addTopic" style="margin-top: 80px">发布</v-btn>
+    <div style="height: 600px">
+      <my-quill-editor
+        v-model="content"
+        :costumeStyle="{
+          height: 600 + 'px'
+        }"
+      ></my-quill-editor>
+    </div>
+
+    <v-btn @click="addTopic" class="mt-4">发布</v-btn>
   </div>
 </template>
 

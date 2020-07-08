@@ -1,7 +1,7 @@
 <template>
   <div class="ql-snow">
     <quill-editor
-      :style="costumeStyle"
+      :style="costumedStyle"
       v-model="content"
       ref="myQuillEditor"
       :options="editorOptions"
@@ -35,7 +35,6 @@ export default {
             // 例如服务器返回{code: 200; data:{ url: 'baidu.com'}}
             // 则 return res.data.url
             response: res => {
-              console.log(res.data);
               return res.data;
             },
             sizeError: () => {}, // 图片超过大小的回调
@@ -56,7 +55,8 @@ export default {
           },
           imageResize: {}
         }
-      }
+      },
+      costumedStyle: { marginBottom: null, height: null }
     };
   },
   computed: {
@@ -65,8 +65,10 @@ export default {
     }
   },
   mounted() {
-    console.log("this is current quill instance object", this.editor);
     this.content = this.value;
+    this.costumedStyle.marginBottom = this.costumeStyle.marginBottom;
+    this.$nextTick(this.calToolbarHeight);
+    window.addEventListener("resize", this.calToolbarHeight);
   },
   watch: {
     value(val) {
@@ -74,6 +76,16 @@ export default {
     },
     content(val) {
       this.$emit("input", val);
+    }
+  },
+  methods: {
+    calToolbarHeight() {
+      let height = this.costumeStyle.height;
+      height = height.substring(0, height.indexOf("px"));
+      if (this.$refs.myQuillEditor != null) {
+        this.costumedStyle.height =
+          height - this.$refs.myQuillEditor.$el.children[0].offsetHeight + "px";
+      }
     }
   }
 };

@@ -39,7 +39,7 @@
 
         <v-tooltip bottom>
           <template v-slot:activator="{ on, attr }">
-            <v-btn icon elevation="5" @click="logout" v-on="on" v-bind="attr">
+            <v-btn icon elevation="1" @click="logout" v-on="on" v-bind="attr">
               <v-icon color="black" style="height: 48px;width: 48px"
                 >fas fa-sign-out-alt
               </v-icon>
@@ -382,5 +382,7 @@ img {
 
 .ql-container {
   overflow-y: auto;
+}
+.ql-toolbar {
 }
 </style>

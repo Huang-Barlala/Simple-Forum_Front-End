@@ -1,5 +1,5 @@
 const webpack = require("webpack");
-
+const CompressionPlugin = require("compression-webpack-plugin");
 // const CompressionWebpackPlugin = require("compression-webpack-plugin");
 /*const isProduction = process.env.NODE_ENV !== "development";
 const devNeedCdn = true;
@@ -27,7 +27,7 @@ module.exports = {
   devServer: {
     disableHostCheck: true,
     port: 8080,
-    host: "localhost",
+    host: "192.168.1.101",
     https: false,
     open: false,
     proxy: {
@@ -38,12 +38,14 @@ module.exports = {
     }
   },
   chainWebpack: config => {
+    config.plugins.delete("prefetch");
     config.plugin("provide").use(webpack.ProvidePlugin, [
       {
         "window.Quill": "quill/dist/quill.js",
         Quill: "quill/dist/quill.js"
       }
     ]);
+    config.plugin("CompressionPlugin").use(CompressionPlugin);
   }
   /*,
   configureWebpack: {

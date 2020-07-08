@@ -6,7 +6,7 @@
           <div class="d-flex flex-row align-center justify-space-between">
             <div class="ma-1">
               <v-avatar>
-                <v-img :src="topicInfo.authoravatar"></v-img>
+                <v-img :src="topicInfo.authorAvatar"></v-img>
               </v-avatar>
               <div v-text="topicInfo.author"></div>
             </div>
@@ -15,7 +15,7 @@
               icon
               v-if="
                 $store.state.isLogin === true &&
-                  $store.state.userInfo.id === topicInfo.userid
+                  $store.state.userInfo.id === topicInfo.userId
               "
             >
               <v-icon>far fa-edit</v-icon>
@@ -34,7 +34,7 @@
       <div class="d-flex flex-row align-center justify-space-between">
         <div class="ma-1">
           <v-avatar>
-            <v-img :src="item.authoravatar"></v-img>
+            <v-img :src="item.authorAvatar"></v-img>
           </v-avatar>
           <div v-text="item.author"></div>
         </div>
@@ -44,7 +44,7 @@
             icon
             v-if="
               $store.state.isLogin === true &&
-                $store.state.userInfo.id === item.userid
+                $store.state.userInfo.id === item.userId
             "
           >
             <v-icon>far fa-edit</v-icon>
@@ -65,17 +65,16 @@
     >
     </v-btn>
     <v-bottom-sheet v-model="sheet">
-      <v-sheet height="500px">
-        <div class="pa-3">
+      <v-sheet height="450px" class="text-center">
+        <div class="pa-3" style="height: 350px;">
           <my-quill-editor
             v-model="content"
             :costumeStyle="{
-              height: 350 + 'px',
-              marginBottom: 70 + 'px'
+              height: 350 + 'px'
             }"
           ></my-quill-editor>
         </div>
-        <v-btn @click="submitContent" s>回复</v-btn>
+        <v-btn @click="submitContent" class="mt-7">回复</v-btn>
       </v-sheet>
     </v-bottom-sheet>
     <v-tooltip top v-if="$store.state.isLogin === true">
@@ -111,7 +110,7 @@
           >
           </v-text-field>
         </div>
-        <div>
+        <div style="height: 350px">
           <my-quill-editor
             v-model="modifyContent"
             :costumeStyle="{
@@ -142,13 +141,14 @@ export default {
       moreButton: "加载更多",
       dialog: false,
       title: "",
-      selectedIndex: null
+      selectedIndex: null,
+      toolbarHeight: 0
     };
   },
   methods: {
     fetchTopicData() {
       this.$axios
-        .get("/api/topic?topicId=" + this.$route.params.topicId)
+        .get("/api/topic?id=" + this.$route.params.topicId)
         .then(res => {
           if (res.data.code === 200) {
             this.topicInfo = res.data.data;
@@ -166,7 +166,7 @@ export default {
       }
       this.$axios
         .get(
-          "/api/reply?topicId=" +
+          "/api/replyList?topicId=" +
             this.$route.params.topicId +
             "&page=" +
             (Math.floor(replyNum / 20) + 1)
@@ -210,7 +210,7 @@ export default {
           .put(
             "/api/topic",
             this.$qs.stringify({
-              topicId: this.topicInfo.id,
+              id: this.topicInfo.id,
               title: this.title,
               content: this.modifyContent
             })
@@ -224,7 +224,7 @@ export default {
           .put(
             "/api/reply",
             this.$qs.stringify({
-              replyId: this.replyData[this.selectedIndex].id,
+              id: this.replyData[this.selectedIndex].id,
               content: this.modifyContent
             })
           )
